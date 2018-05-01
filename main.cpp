@@ -1,20 +1,29 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 #include "j5E.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Map");
+	if(argc!=3)
+		return 0;
+
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Map");
 	window.setFramerateLimit(60);
 
 
 	sf::Color color;
 	color=sf::Color::Green;
-    sf::CircleShape shape(100.0);
-	shape.setOutlineColor(color);
-	sf::Vertex line[2];
+    sf::CircleShape circle;
+	circle.setOutlineColor(color);
+	circle.setOutlineThickness(1.f);
+	circle.setFillColor(sf::Color::Transparent);
+
+	sf::CircleShape point;
+	point.setFillColor(sf::Color::Red);
+	point.setRadius(3.f);
 
 	std::stringstream txtStream;
 	sf::Font font;
@@ -24,85 +33,91 @@ int main()
 	}
 	sf::Text txt;
 	txt.setFont(font);
-	txt.setCharacterSize(30);
+	txt.setCharacterSize(20);
 	txt.setFillColor(sf::Color::Cyan);
 	txt.setPosition(20.f, 20.f);
 
-	auto chars=j5E::Creature::getCreatures();
-	j5E::Creature p1(j5E::circle(100.0, 200.0, 50.0));
-	j5E::Creature p2(j5E::circle(200.0, 400.0, 50.0));
-	j5E::circle temp;
 	j5E::point mouse(0.0, 0.0);
 
-	line[0].position=sf::Vector2f(p1.getCircle().p.x, p1.getCircle().p.y);
-	line[1].position=sf::Vector2f(0.f, 0.f);
 
-	std::vector<j5E::point*> cols;
+	j5E::circle c(400.0, 400.0, 25.0);
+	j5E::point c1(400.0, 375.0);
+	j5E::point c2(400.0, 425.0);
+	j5E::line a({std::atof(argv[1]), std::atof(argv[2])}, {0.0, 0.0});
+	sf::Vertex line[2];
+	line[0].position=sf::Vector2f(a[0].x, a[0].y);
+	circle.setPosition(c.p.x-c.r, c.p.y-c.r);
+	circle.setRadius(c.r);
 
-	j5E::point moveTo(0.0, 0.0); 
-
-#ifdef DEBUG
-
-#endif
+	int n=0;
+	j5E::point cols[2];
 
     while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+            if(event.type == sf::Event::Closed)
                 window.close();
 
-			if (event.type == sf::Event::MouseMoved) {
-				mouse.x=event.mouseMove.x;
-				mouse.y=event.mouseMove.y;
-				moveTo.x=mouse.x;
-				moveTo.y=mouse.y;
-				line[1].position=sf::Vector2f(mouse.x, mouse.y);
+			if(event.type == sf::Event::MouseButtonPressed) {
+				a[0].x=event.mouseButton.x;
+				a[0].y=event.mouseButton.y;
+				line[0].position=sf::Vector2f(a[0].x, a[0].y);
+			}
+
+			if(event.type == sf::Event::MouseMoved) {
+				a[1].x=event.mouseMove.x;
+				a[1].y=event.mouseMove.y;
+				line[1].position=sf::Vector2f(a[1].x, a[1].y);
 			}
         }
 
-        window.clear(sf::Color::Black);
+		window.clear();
 
-		for(int i=0;i<chars->size();++i) {
-			temp=chars->at(i)->getCircle();
-			color=sf::Color::Transparent;
-			shape.setFillColor(color);
-			shape.setOutlineThickness(-1.f);
-			shape.setPosition(temp.p.x-temp.r, temp.p.y-temp.r);
-			shape.setRadius(temp.r);
-			window.draw(shape); 
-		}
-		if(p1.tryMove(mouse.x, mouse.y, &cols) != 0) {
-			for(int i=0;i<cols.size();++i) {
-				txtStream << "Collision at: (" << cols.at(i)->x << "," << cols.at(i)->y << ")" << std::endl;
-				moveTo.x=cols.at(0)->x;
-				moveTo.y=cols.at(0)->y;
-			}
-		}
-		cols.clear();
-
-		txt.setPosition(20.f, 20.f);
-		txt.setString(txtStream.str());	
-		window.draw(txt);
-		txtStream.str("");
-
-		txtStream << "(" << mouse.x << "," << mouse.y << ")";
-		txt.setPosition(600.f, 20.f);
-		txt.setString(txtStream.str());
-		window.draw(txt);
-		txtStream.str("");
-
-		temp=p1.getCircle();
-		color=sf::Color::Green;
-		color.a=100;
-		shape.setFillColor(color);
-		shape.setOutlineThickness(0.f);
-		shape.setPosition(moveTo.x-temp.r, moveTo.y-temp.r);
-		shape.setRadius(temp.r);
-		window.draw(shape);
-
+		window.draw(circle);
 		window.draw(line, 2, sf::Lines);
+
+		n=j5E::intersectLineCircle(a, c, cols);
+		std::cout << " n:" << n;
+
+		if(n==1) {
+			txtStream.str(std::string());
+			point.setPosition(cols[0].x-3.f, cols[0].y-3.f);
+			window.draw(point);
+			txtStream << "(" << cols[0].x << "," << cols[0].y << ")";
+			txt.setString(txtStream.str());
+			window.draw(txt);
+			txt.setPosition(cols[0].x+10.0, cols[0].y-25.0);
+		}
+		else if(n==2) {
+			txtStream.str(std::string());
+			point.setPosition(cols[0].x-3.f, cols[0].y-3.f);
+			window.draw(point);
+			txtStream << "(" << cols[0].x << "," << cols[0].y << ")";
+			txt.setString(txtStream.str());
+			window.draw(txt);
+			txt.setPosition(cols[0].x+10.0, cols[0].y-25.0);
+
+			txtStream.str(std::string());
+			point.setPosition(cols[1].x-3.f, cols[1].y-3.f);
+			window.draw(point);
+			txtStream << "(" << cols[1].x << "," << cols[1].y << ")";
+			txt.setString(txtStream.str());
+			window.draw(txt);
+			txt.setPosition(cols[1].x+10.0, cols[1].y-25.0);
+		}
+		else if(n==3) {
+			txtStream.str(std::string());
+			point.setPosition(cols[1].x-3.f, cols[1].y-3.f);
+			window.draw(point);
+			txtStream << "(" << cols[1].x << "," << cols[1].y << ")";
+			txt.setString(txtStream.str());
+			window.draw(txt);
+			txt.setPosition(cols[1].x+10.0, cols[1].y-25.0);
+		}
+
+		std::cout << " mouse:(" << a[1].x << "," << a[1].y << ")" << "                                      ";
 
         window.display();
     }

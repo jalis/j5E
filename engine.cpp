@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <cmath>
 #include <iostream>
 
@@ -8,8 +10,8 @@ namespace j5E {
 	int Entity::nextID=0;
 
 	int intersectLineCircle(line l, circle ci, point intersections[2]) {
-		point d = l[0] - l[1]; // Direction vector of line, calculated using vector substraction
-		point f = l[1] - ci.p; // vector from circle's center to start of line, also vector substraction
+		point d = l[1] - l[0]; // Direction vector of line, calculated using vector substraction
+		point f = l[0] - ci.p; // vector from circle's center to start of line, also vector substraction
 		// dividing equation into multiple variables for reuse and readability
 		double a = d.dot(d); // dot product of 'd' with itself
 		double b = 2*f.dot(d); // dot product of 'f' and 'd', multiplied by two(2)
@@ -17,7 +19,7 @@ namespace j5E {
 
 		double discriminant = b*b-4*a*c;
 
-		std::cout << "\rd:(" << d.x << "," << d.y << "), f:(" << f.x << "," << f.y << "), a:"<< a << ", b:" << b << ", c:" << c << ", discriminant:" << discriminant;
+		std::cout << "\rd:(" << d.x << "," << d.y << "), f:(" << f.x << "," << f.y << "), a:"<< a << ", b:" << b << ", c:" << c << ", discriminant:" << discriminant << "       ";
 		if (discriminant < 0)
 			return 0;
 		
@@ -26,71 +28,19 @@ namespace j5E {
 		double t1 = (-b - discriminant)/(2*a);
 		double t2 = (-b + discriminant)/(2*a);
 
-		intersections[0]={l[1].x + t2 * d.x, l[1].y + t2 * d.y};
-		intersections[1]={l[1].x + t1 * d.x, l[1].y + t1 * d.y};
+		intersections[0]={l[0].x + t1 * d.x, l[0].y + t1 * d.y};
+		intersections[1]={l[0].x + t2 * d.x, l[0].y + t2 * d.y};
 
-		if(t1 >= 0 && t1 <= 1) 
-			return 2;
-		if(t2 >= 0 && t2 <= 1)
-			return 1;
+		std::cout << "t1:" << t1 << " t2:" << t2;
+		
+		if(t1<=1 && t1>=0) {
+			if(t2<=1)
+				return 2; //2 intersections, stored in intersections[0..1]
+			return 1; //1 intersection, stored in intersections[0]
+		}
+		if(t2>=0 && t2<=1)
+			return 3; //1 intersection, stored in intersections[1]
 		return 0;
-
-/*		double dx, dy, A, B, C, det, t;
-
-		dx = l[1].x - l[0].x;
-		dy = l[1].y - l[0].y;
-
-		A = dx*dx + dy*dy;
-		B = 2 * (dx * (l[0].x - ci.p.x) + dy * (l[0].y - ci.p.y));
-		C = (l[1].x - ci.p.x) * (l[0].x - ci.p.x) + (l[0].y - ci.p.y) * (l[0].y - ci.p.y) - ci.r*ci.r;
-
-		det = B * B - 4 * A * C;
-		if ((A <= 0.0000001) || (det < 0)) {
-			return 0;
-		}
-		else if(det ==0) {
-			t = -B / (2 * A);
-			intersections[0] = {l[0].x + t * dx, l[0].y + t * dy};
-			return 1;
-		}
-		else {
-			t = (double)((-B + std::sqrt(det)) / (2 * A));
-			intersections[0] = {l[0].x + t * dx, l[0].y + t * dy};
-			t = (double)((-B - std::sqrt(det)) / (2 * A));
-			intersections[1] = {l[0].x + t * dx, l[0].y + t * dy};
-			return 2;
-		} */
-
-/*		double m = (l[1].y - l[0].y) / (l[1].x - l[0].x);
-		double b = l[0].y - (m * l[0].x);
-
-		double A = 1+m*m;
-		double B = -2*ci.p.x + 2*m*b - 2*ci.p.y*m;
-		double C = ci.p.x*ci.p.x + b*b + ci.p.y*ci.p.y - 2*ci.p.y*b - ci.r*ci.r;
-
-		double delta = B*B - 4*A*C;
-
-		if(delta<0){
-			return false;
-		}
-
-		double x1=(-B+std::sqrt(delta))/(2*A);
-		double x2=(-B-std::sqrt(delta))/(2*A);
-
-		double y1=m*x1+b;
-		double y2=m*x2+b;
-
-		point int1;
-		point int2;
-
-		int1.x=x1;
-		int1.y=y1;
-		int2.x=x2;
-		int2.y=y2;
-
-		intersections[0]=int1;
-		intersections[1]=int2;
-		return true;*/
 	}
 
 	Entity::Entity() {
@@ -100,6 +50,19 @@ namespace j5E {
 		alive=true;
 		std::cout << "new entity " << id << std::endl;
 	}
+
+
+	bool collisionLineArc(line l, point c, point a, point b) {
+		double A=std::atan2(a.y-c.y, a.x-c.x); //Angle of a on circle
+		double B=std::atan2(b.y-c.y, b.x-c.x); //Angle of b on circle
+
+		point d=l[1]-l[0];
+		double D=std::atan2(d.y, d.x);
+
+		std::cout << "\rA:" << A << ", B:" << B << ", D:" << D << ", D in degrees:" << D*180/M_PI << "   ";
+		return D > A && D < B; //Clockwise arc from A to B
+	}
+
 #ifdef DEBUG
 	void Entity::listEntities() {
 		int size=eList.size();
