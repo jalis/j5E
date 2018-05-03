@@ -13,7 +13,7 @@ CC = g++
 CPPFLAGS += $(foreach includedir,$(program_INCLUDE_DIRS),-I$(includedir))
 LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
-LDFLAGS += -static-libstdc++ -static-libgcc -static -lpthread
+#LDFLAGS += -static-libstdc++ -static-libgcc -static -lpthread
 
 .PHONY: all debug release clean distclean
 

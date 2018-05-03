@@ -85,15 +85,15 @@ namespace j5E {
 	//Returns intersection type, '1' means 1 intersection stored in point[0], '2' means 2 intersections std in point[0..1], '3' means 1 intersection stored in point[1]
 	int intersectLineCircle(line, circle, point[2]);
 
-	bool collisionLineArc(line, point, point, point); //First argument is the line, second is the arc's center, last two are start and end points of the arc
-	bool collisionLineArc(line, point[3]); //Same as above but two args
-	bool collisionLineArc(line, point, line); //3rd argument is instead a line containing the start and end of the arc.
-	bool collisionLineArc(line, point, double, double); //First two args are the same, last two are start and end angles of the arc.
-
+	//Checks for collision between line and a clockwise arc defined by circle and the arc beginning point and end point
+	bool collisionLineArc(line, circle, point, point); //First argument is the line, second is the arc's center, last two are start and end points of the arc
 
 /*	//Possible overloads with circles as the second arguments instead of points.
 	bool collisionLineArc(line, circle, point, point); 
 	bool collisionLineArc(line, circle, line); 
 	bool collisionLineArc(line, circle, point[2]); 
-	bool collisionLineArc(line, circle, double, double); */
+	bool collisionLineArc(line, circle, double, double); 
+	bool collisionLineArc(line, point[3]); //Same as above but two args
+	bool collisionLineArc(line, point, line); //3rd argument is instead a line containing the start and end of the arc.
+	bool collisionLineArc(line, point, double, double); //First two args are the same, last two are start and end angles of the arc.*/
 }

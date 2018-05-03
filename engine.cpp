@@ -19,7 +19,9 @@ namespace j5E {
 
 		double discriminant = b*b-4*a*c;
 
-		std::cout << "\rd:(" << d.x << "," << d.y << "), f:(" << f.x << "," << f.y << "), a:"<< a << ", b:" << b << ", c:" << c << ", discriminant:" << discriminant << "       ";
+#ifdef DEBUG
+//		std::cout << "d:(" << d.x << "," << d.y << "), f:(" << f.x << "," << f.y << "), a:"<< a << ", b:" << b << ", c:" << c << ", discriminant:" << discriminant << "       ";
+#endif
 		if (discriminant < 0)
 			return 0;
 		
@@ -31,7 +33,9 @@ namespace j5E {
 		intersections[0]={l[0].x + t1 * d.x, l[0].y + t1 * d.y};
 		intersections[1]={l[0].x + t2 * d.x, l[0].y + t2 * d.y};
 
-		std::cout << "t1:" << t1 << " t2:" << t2;
+#ifdef DEBUG
+//		std::cout << "t1:" << t1 << " t2:" << t2;
+#endif
 		
 		if(t1<=1 && t1>=0) {
 			if(t2<=1)
@@ -48,19 +52,34 @@ namespace j5E {
 		eList.push_back(std::unique_ptr<Entity>(this));
 		++nextID;
 		alive=true;
+		
+#ifdef DEBUG		
 		std::cout << "new entity " << id << std::endl;
+#endif
 	}
 
 
-	bool collisionLineArc(line l, point c, point a, point b) {
-		double A=std::atan2(a.y-c.y, a.x-c.x); //Angle of a on circle
-		double B=std::atan2(b.y-c.y, b.x-c.x); //Angle of b on circle
+	bool collisionLineArc(line l, circle c, point a, point b) {
+		double A=std::atan2(a.y-c.p.y, a.x-c.p.x); //Angle of a on circle
+		double B=std::atan2(b.y-c.p.y, b.x-c.p.x); //Angle of b on circle
 
-		point d=l[1]-l[0];
-		double D=std::atan2(d.y, d.x);
+		point cols[2];
+		int n=intersectLineCircle(l, c, cols);
 
-		std::cout << "\rA:" << A << ", B:" << B << ", D:" << D << ", D in degrees:" << D*180/M_PI << "   ";
-		return D > A && D < B; //Clockwise arc from A to B
+		if(n==1) {
+			double D1=std::atan2(cols[0].y-c.p.y, cols[0].x-c.p.x);
+			return (D1 < B && (D1 > A || B < A)) || (D1 > A && B < A);
+		}
+		if(n==2) {
+			double D1=std::atan2(cols[0].y-c.p.y, cols[0].x-c.p.x);
+			double D2=std::atan2(cols[1].y-c.p.y, cols[1].x-c.p.x);
+			return ((D1 < B && (D1 > A || B < A)) || (D1 > A && B < A)) || (D2 < B && (D2 > A || B < A)) || (D2 > A && B < A);
+		}
+		if(n==3) {
+			double D1=std::atan2(cols[1].y-c.p.y, cols[1].x-c.p.x);
+			return (D1 < B && (D1 > A || B < A)) || (D1 > A && B < A);
+		}
+		return false;
 	}
 
 #ifdef DEBUG

@@ -1,4 +1,4 @@
 @ECHO OFF
 
 set PATH=$PATH;bin\
-map.exe
+map.exe 400 400
